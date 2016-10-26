@@ -18,34 +18,28 @@
 
 package org.apache.zookeeper.server.quorum.flexible;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Map.Entry;
-
-
+import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 
 /**
- * This class implements a validator for hierarchical quorums. With this
- * construction, zookeeper servers are split into disjoint groups, and 
- * each server has a weight. We obtain a quorum if we get more than half
- * of the total weight of a group for a majority of groups.
+ * This class implements a validator for hierarchical quorums.
+ * With this construction, zookeeper servers are split into disjoint groups, and each server has a weight.
+ * We obtain a quorum if we get more than half of the total weight of a group for a majority of groups.
  * 
  * The configuration of quorums uses two parameters: group and weight. 
- * Groups are sets of ZooKeeper servers, and we set a group by passing
- * a colon-separated list of server ids. It is also necessary to assign
- * weights to server. Here is an example of a configuration that creates
- * three groups and assigns a weight of 1 to each server:
+ * Groups are sets of ZooKeeper servers, and we set a group by passing a colon-separated list of server ids.
+ * It is also necessary to assign weights to server.
+ * Here is an example of a configuration that creates three groups and assigns a weight of 1 to each server:
  * 
  *  group.1=1:2:3
  *  group.2=4:5:6

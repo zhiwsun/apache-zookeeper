@@ -32,17 +32,16 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 /**
- * This class manages watches. It allows watches to be associated with a string
- * and removes watchers and their watches in addition to managing triggers.
+ * This class manages watches.
+ * It allows watches to be associated with a string and
+ * removes watchers and their watches in addition to managing triggers.
  */
 public class WatchManager {
     private static final Logger LOG = LoggerFactory.getLogger(WatchManager.class);
 
-    private final HashMap<String, HashSet<Watcher>> watchTable =
-        new HashMap<String, HashSet<Watcher>>();
+    private final HashMap<String, HashSet<Watcher>> watchTable = new HashMap<String, HashSet<Watcher>>();
 
-    private final HashMap<Watcher, HashSet<String>> watch2Paths =
-        new HashMap<Watcher, HashSet<String>>();
+    private final HashMap<Watcher, HashSet<String>> watch2Paths = new HashMap<Watcher, HashSet<String>>();
 
     public synchronized int size(){
         int result = 0;
@@ -100,9 +99,7 @@ public class WatchManager {
             watchers = watchTable.remove(path);
             if (watchers == null || watchers.isEmpty()) {
                 if (LOG.isTraceEnabled()) {
-                    ZooTrace.logTraceMessage(LOG,
-                            ZooTrace.EVENT_DELIVERY_TRACE_MASK,
-                            "No watchers for " + path);
+                    ZooTrace.logTraceMessage(LOG, ZooTrace.EVENT_DELIVERY_TRACE_MASK, "No watchers for " + path);
                 }
                 return null;
             }

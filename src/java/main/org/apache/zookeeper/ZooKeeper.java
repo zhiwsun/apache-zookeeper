@@ -128,12 +128,9 @@ public class ZooKeeper {
      * API.
      */
     private static class ZKWatchManager implements ClientWatchManager {
-        private final Map<String, Set<Watcher>> dataWatches =
-            new HashMap<String, Set<Watcher>>();
-        private final Map<String, Set<Watcher>> existWatches =
-            new HashMap<String, Set<Watcher>>();
-        private final Map<String, Set<Watcher>> childWatches =
-            new HashMap<String, Set<Watcher>>();
+        private final Map<String, Set<Watcher>> dataWatches  = new HashMap<String, Set<Watcher>>();
+        private final Map<String, Set<Watcher>> existWatches = new HashMap<String, Set<Watcher>>();
+        private final Map<String, Set<Watcher>> childWatches = new HashMap<String, Set<Watcher>>();
 
         private volatile Watcher defaultWatcher;
 
@@ -1135,9 +1132,7 @@ public class ZooKeeper {
      *
      * @see #exists(String, Watcher)
      */
-    public void exists(final String path, Watcher watcher,
-            StatCallback cb, Object ctx)
-    {
+    public void exists(final String path, Watcher watcher, StatCallback cb, Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1188,8 +1183,7 @@ public class ZooKeeper {
      * @throws IllegalArgumentException if an invalid path is specified
      */
     public byte[] getData(final String path, Watcher watcher, Stat stat)
-        throws KeeperException, InterruptedException
-     {
+            throws KeeperException, InterruptedException {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1209,8 +1203,7 @@ public class ZooKeeper {
         GetDataResponse response = new GetDataResponse();
         ReplyHeader r = cnxn.submitRequest(h, request, response, wcb);
         if (r.getErr() != 0) {
-            throw KeeperException.create(KeeperException.Code.get(r.getErr()),
-                    clientPath);
+            throw KeeperException.create(KeeperException.Code.get(r.getErr()), clientPath);
         }
         if (stat != null) {
             DataTree.copyStat(response.getStat(), stat);
@@ -1236,8 +1229,7 @@ public class ZooKeeper {
      * @throws KeeperException If the server signals an error with a non-zero error code
      * @throws InterruptedException If the server transaction is interrupted.
      */
-    public byte[] getData(String path, boolean watch, Stat stat)
-            throws KeeperException, InterruptedException {
+    public byte[] getData(String path, boolean watch, Stat stat) throws KeeperException, InterruptedException {
         return getData(path, watch ? watchManager.defaultWatcher : null, stat);
     }
 
@@ -1246,9 +1238,7 @@ public class ZooKeeper {
      *
      * @see #getData(String, Watcher, Stat)
      */
-    public void getData(final String path, Watcher watcher,
-            DataCallback cb, Object ctx)
-    {
+    public void getData(final String path, Watcher watcher, DataCallback cb, Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1266,8 +1256,7 @@ public class ZooKeeper {
         request.setPath(serverPath);
         request.setWatch(watcher != null);
         GetDataResponse response = new GetDataResponse();
-        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb,
-                clientPath, serverPath, ctx, wcb);
+        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb, clientPath, serverPath, ctx, wcb);
     }
 
     /**
@@ -1335,9 +1324,7 @@ public class ZooKeeper {
      *
      * @see #setData(String, byte[], int)
      */
-    public void setData(final String path, byte data[], int version,
-            StatCallback cb, Object ctx)
-    {
+    public void setData(final String path, byte data[], int version, StatCallback cb, Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1350,8 +1337,7 @@ public class ZooKeeper {
         request.setData(data);
         request.setVersion(version);
         SetDataResponse response = new SetDataResponse();
-        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb,
-                clientPath, serverPath, ctx, null);
+        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb, clientPath, serverPath, ctx, null);
     }
 
     /**
@@ -1399,9 +1385,7 @@ public class ZooKeeper {
      *
      * @see #getACL(String, Stat)
      */
-    public void getACL(final String path, Stat stat, ACLCallback cb,
-            Object ctx)
-    {
+    public void getACL(final String path, Stat stat, ACLCallback cb, Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1412,8 +1396,7 @@ public class ZooKeeper {
         GetACLRequest request = new GetACLRequest();
         request.setPath(serverPath);
         GetACLResponse response = new GetACLResponse();
-        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb,
-                clientPath, serverPath, ctx, null);
+        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb, clientPath, serverPath, ctx, null);
     }
 
     /**
@@ -1565,9 +1548,7 @@ public class ZooKeeper {
      *
      * @see #getChildren(String, Watcher)
      */
-    public void getChildren(final String path, Watcher watcher,
-            ChildrenCallback cb, Object ctx)
-    {
+    public void getChildren(final String path, Watcher watcher, ChildrenCallback cb, Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath);
 
@@ -1585,8 +1566,7 @@ public class ZooKeeper {
         request.setPath(serverPath);
         request.setWatch(watcher != null);
         GetChildrenResponse response = new GetChildrenResponse();
-        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb,
-                clientPath, serverPath, ctx, wcb);
+        cnxn.queuePacket(h, new ReplyHeader(), request, response, cb, clientPath, serverPath, ctx, wcb);
     }
 
     /**

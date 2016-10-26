@@ -30,14 +30,12 @@ import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 /**
  * Parent class for all ZooKeeperServers for Learners 
  */
-public abstract class LearnerZooKeeperServer extends QuorumZooKeeperServer {    
-    public LearnerZooKeeperServer(FileTxnSnapLog logFactory, int tickTime,
-            int minSessionTimeout, int maxSessionTimeout,
-            DataTreeBuilder treeBuilder, ZKDatabase zkDb, QuorumPeer self)
-        throws IOException
-    {
-        super(logFactory, tickTime, minSessionTimeout, maxSessionTimeout,
-                treeBuilder, zkDb, self);
+public abstract class LearnerZooKeeperServer extends QuorumZooKeeperServer {
+
+    public LearnerZooKeeperServer(FileTxnSnapLog logFactory, int tickTime, int minSessionTimeout,
+                                  int maxSessionTimeout, DataTreeBuilder treeBuilder, ZKDatabase zkDb, QuorumPeer self)
+        throws IOException {
+        super(logFactory, tickTime, minSessionTimeout, maxSessionTimeout, treeBuilder, zkDb, self);
     }
 
     /**
@@ -57,7 +55,7 @@ public abstract class LearnerZooKeeperServer extends QuorumZooKeeperServer {
         if (sessionTracker != null) {
             return ((LearnerSessionTracker) sessionTracker).snapshot();
         }
-        return new HashMap<Long, Integer>();
+        return new HashMap<>();
     }
     
     /**
@@ -71,9 +69,8 @@ public abstract class LearnerZooKeeperServer extends QuorumZooKeeperServer {
     
     @Override
     public void createSessionTracker() {
-        sessionTracker = new LearnerSessionTracker(this, getZKDatabase()
-                .getSessionWithTimeOuts(), self.getId(),
-                getZooKeeperServerListener());
+        sessionTracker = new LearnerSessionTracker(this, getZKDatabase().getSessionWithTimeOuts(),
+                                                   self.getId(), getZooKeeperServerListener());
     }
     
     @Override

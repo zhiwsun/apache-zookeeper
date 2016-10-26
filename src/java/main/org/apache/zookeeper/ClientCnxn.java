@@ -82,16 +82,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class manages the socket i/o for the client. ClientCnxn maintains a list
- * of available servers to connect to and "transparently" switches servers it is
- * connected to as needed.
- *
+ * This class manages the socket i/o for the client.
+ * ClientCnxn maintains a list of available servers to connect to and
+ * "transparently" switches servers it is connected to as needed.
  */
 public class ClientCnxn {
+
     private static final Logger LOG = LoggerFactory.getLogger(ClientCnxn.class);
 
-    private static final String ZK_SASL_CLIENT_USERNAME =
-        "zookeeper.sasl.client.username";
+    private static final String ZK_SASL_CLIENT_USERNAME = "zookeeper.sasl.client.username";
 
     /* ZOOKEEPER-706: If a session has a large number of watches set then
      * attempting to re-establish those watches after a connection loss may
@@ -109,13 +108,10 @@ public class ClientCnxn {
      * the environment variable "zookeeper.disableAutoWatchReset" to "true" */
     private static boolean disableAutoWatchReset;
     static {
-        // this var should not be public, but otw there is no easy way
-        // to test
-        disableAutoWatchReset =
-            Boolean.getBoolean("zookeeper.disableAutoWatchReset");
+        // this var should not be public, but otw there is no easy way to test
+        disableAutoWatchReset = Boolean.getBoolean("zookeeper.disableAutoWatchReset");
         if (LOG.isDebugEnabled()) {
-            LOG.debug("zookeeper.disableAutoWatchReset is "
-                    + disableAutoWatchReset);
+            LOG.debug("zookeeper.disableAutoWatchReset is " + disableAutoWatchReset);
         }
     }
 
@@ -445,8 +441,7 @@ public class ClientCnxn {
     }
 
     class EventThread extends ZooKeeperThread {
-        private final LinkedBlockingQueue<Object> waitingEvents =
-            new LinkedBlockingQueue<Object>();
+        private final LinkedBlockingQueue<Object> waitingEvents = new LinkedBlockingQueue<Object>();
 
         /** This is really the queued session state until the event
          * thread actually processes the event and hands it to the watcher.

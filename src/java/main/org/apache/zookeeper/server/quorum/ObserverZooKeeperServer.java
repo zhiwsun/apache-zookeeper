@@ -89,27 +89,29 @@ public class ObserverZooKeeperServer extends LearnerZooKeeperServer {
         commitProcessor.commit(request);        
     }
     
-    /**
-     * Set up the request processors for an Observer:
-     * firstProcesor->commitProcessor->finalProcessor
-     */
     @Override
-    protected void setupRequestProcessors() {      
-        // We might consider changing the processor behaviour of 
-        // Observers to, for example, remove the disk sync requirements.
-        // Currently, they behave almost exactly the same as followers.
+    protected void setupRequestProcessors() {
+
+        /**
+         * ObserverRequestProcessor -> CommitProcessor -> FinalRequestProcessor
+         * */
+
+        /*
+         * We might consider changing the processor behaviour of Observers to,
+         * for example, remove the disk sync requirements.
+         * Currently, they behave almost exactly the same as followers.
+         */
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
-        commitProcessor = new CommitProcessor(finalProcessor,
-                Long.toString(getServerId()), true,
-                getZooKeeperServerListener());
+        commitProcessor = new CommitProcessor(finalProcessor, Long.toString(getServerId()), true,
+                                              getZooKeeperServerListener());
         commitProcessor.start();
         firstProcessor = new ObserverRequestProcessor(this, commitProcessor);
         ((ObserverRequestProcessor) firstProcessor).start();
 
         /*
-         * Observer should write to disk, so that the it won't request
-         * too old txn from the leader which may lead to getting an entire
-         * snapshot.
+         * Observer should write to disk,
+         * so that the it won't request too old txn from the leader
+         * which may lead to getting an entire snapshot.
          *
          * However, this may degrade performance as it has to write to disk
          * and do periodic snapshot which may double the memory requirements

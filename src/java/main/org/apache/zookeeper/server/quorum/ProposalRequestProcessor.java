@@ -30,8 +30,7 @@ import org.slf4j.LoggerFactory;
  * SyncRequestProcessor.
  */
 public class ProposalRequestProcessor implements RequestProcessor {
-    private static final Logger LOG =
-        LoggerFactory.getLogger(ProposalRequestProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProposalRequestProcessor.class);
 
     LeaderZooKeeperServer zks;
     
@@ -58,7 +57,7 @@ public class ProposalRequestProcessor implements RequestProcessor {
         // LOG.warn("Ack>>> cxid = " + request.cxid + " type = " +
         // request.type + " id = " + request.sessionId);
         // request.addRQRec(">prop");
-                
+
         
         /* In the following IF-THEN-ELSE block, we process syncs on the leader. 
          * If the sync is coming from a follower, then the follower

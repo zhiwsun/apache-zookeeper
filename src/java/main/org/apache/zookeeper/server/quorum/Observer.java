@@ -18,14 +18,14 @@
 
 package org.apache.zookeeper.server.quorum;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import org.apache.jute.Record;
 import org.apache.zookeeper.server.ObserverBean;
 import org.apache.zookeeper.server.Request;
 import org.apache.zookeeper.server.util.SerializeUtils;
 import org.apache.zookeeper.txn.TxnHeader;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Observers are peers that do not take part in the atomic broadcast protocol.
@@ -36,7 +36,7 @@ import org.apache.zookeeper.txn.TxnHeader;
  *
  * See ZOOKEEPER-368 for a discussion of this feature. 
  */
-public class Observer extends Learner{      
+public class Observer extends Learner {
 
     Observer(QuorumPeer self,ObserverZooKeeperServer observerZooKeeperServer) {
         this.self = self;
@@ -65,6 +65,7 @@ public class Observer extends Learner{
             LOG.info("Observing " + addr);
             try {
                 connectToLeader(addr);
+                /** OBSERVERINFO - 告诉Leader发起连接的节点是一个Observer */
                 long newLeaderZxid = registerWithLeader(Leader.OBSERVERINFO);
 
                 syncWithLeader(newLeaderZxid);
@@ -80,8 +81,6 @@ public class Observer extends Learner{
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-    
-                // clear pending revalidations
                 pendingRevalidations.clear();
             }
         } finally {

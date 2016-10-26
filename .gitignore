@@ -20,3 +20,11 @@ src/c/depcomp
 src/c/install-sh
 src/c/ltmain.sh
 src/c/missing
+
+out/
+*iml
+*iws
+*ipr
+.DS_Store
+**/.DS_Store
+.idea/

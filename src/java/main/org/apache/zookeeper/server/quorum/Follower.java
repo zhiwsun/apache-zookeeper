@@ -18,13 +18,13 @@
 
 package org.apache.zookeeper.server.quorum;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import org.apache.jute.Record;
 import org.apache.zookeeper.server.util.SerializeUtils;
 import org.apache.zookeeper.server.util.ZxidUtils;
 import org.apache.zookeeper.txn.TxnHeader;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * This class has the control logic for the Follower.
@@ -51,32 +51,34 @@ public class Follower extends Learner{
         return sb.toString();
     }
 
-    /**
-     * the main method called by the follower to follow the leader
-     *
-     * @throws InterruptedException
-     */
+    /** the main method called by the follower to follow the leader */
     void followLeader() throws InterruptedException {
         self.end_fle = System.currentTimeMillis();
-        LOG.info("FOLLOWING - LEADER ELECTION TOOK - " +
-              (self.end_fle - self.start_fle));
+        LOG.info("FOLLOWING - LEADER ELECTION TOOK - " + (self.end_fle - self.start_fle));
         self.start_fle = 0;
-        self.end_fle = 0;
+        self.end_fle   = 0;
+
         fzk.registerJMX(new FollowerBean(this, zk), self.jmxLocalPeerBean);
+
         try {
             InetSocketAddress addr = findLeader();            
             try {
+                /**
+                 * ZAB协议中的Phase#1.Discovery
+                 * 通过leader.zxid获取epoch信息，对比epoch信息
+                 * 如果newEpoch < self.acceptedEpoch，则证明leader选择错误，抛出异常。
+                 * QuorumPeer会捕获这个异常，重新进入leader选举阶段
+                 * */
                 connectToLeader(addr);
                 long newEpochZxid = registerWithLeader(Leader.FOLLOWERINFO);
-
-                //check to see if the leader zxid is lower than ours
-                //this should never happen but is just a safety check
                 long newEpoch = ZxidUtils.getEpochFromZxid(newEpochZxid);
                 if (newEpoch < self.getAcceptedEpoch()) {
                     LOG.error("Proposed leader epoch " + ZxidUtils.zxidToString(newEpochZxid)
                             + " is less than our accepted epoch " + ZxidUtils.zxidToString(self.getAcceptedEpoch()));
                     throw new IOException("Error: Epoch of leader is lower");
                 }
+
+
                 syncWithLeader(newEpochZxid);                
                 QuorumPacket qp = new QuorumPacket();
                 while (this.isRunning()) {

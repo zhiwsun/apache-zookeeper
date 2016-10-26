@@ -83,9 +83,7 @@ public class ZooTrace {
         // }
     }
 
-    static public void logRequest(Logger log, long mask,
-            char rp, Request request, String header)
-    {
+    static public void logRequest(Logger log, long mask, char rp, Request request, String header) {
         if (isTraceEnabled(log, mask)) {
             log.trace(header + ":" + rp + request.toString());
         }

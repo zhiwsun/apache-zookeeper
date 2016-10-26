@@ -41,8 +41,7 @@ import org.apache.zookeeper.txn.TxnHeader;
  * A SyncRequestProcessor is also spawned off to log proposals from the leader.
  */
 public class FollowerZooKeeperServer extends LearnerZooKeeperServer {
-    private static final Logger LOG =
-        LoggerFactory.getLogger(FollowerZooKeeperServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FollowerZooKeeperServer.class);
 
     CommitProcessor commitProcessor;
 
@@ -53,11 +52,6 @@ public class FollowerZooKeeperServer extends LearnerZooKeeperServer {
      */
     ConcurrentLinkedQueue<Request> pendingSyncs;
     
-    /**
-     * @param port
-     * @param dataDir
-     * @throws IOException
-     */
     FollowerZooKeeperServer(FileTxnSnapLog logFactory,QuorumPeer self,
             DataTreeBuilder treeBuilder, ZKDatabase zkDb) throws IOException {
         super(logFactory, self.tickTime, self.minSessionTimeout,
@@ -71,15 +65,19 @@ public class FollowerZooKeeperServer extends LearnerZooKeeperServer {
 
     @Override
     protected void setupRequestProcessors() {
+
+        /**
+         * FollowerRequestProcessor -> CommitProcessor -> FinalRequestProcessor
+         * SyncRequestProcessor -> SendAckRequestProcessor
+         * */
+
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
-        commitProcessor = new CommitProcessor(finalProcessor,
-                Long.toString(getServerId()), true,
-                getZooKeeperServerListener());
+        commitProcessor = new CommitProcessor(finalProcessor, Long.toString(getServerId()),
+                                              true, getZooKeeperServerListener());
         commitProcessor.start();
         firstProcessor = new FollowerRequestProcessor(this, commitProcessor);
         ((FollowerRequestProcessor) firstProcessor).start();
-        syncProcessor = new SyncRequestProcessor(this,
-                new SendAckRequestProcessor((Learner)getFollower()));
+        syncProcessor = new SyncRequestProcessor(this, new SendAckRequestProcessor((Learner)getFollower()));
         syncProcessor.start();
     }
 

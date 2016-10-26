@@ -79,19 +79,17 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     
     static {
         LOG = LoggerFactory.getLogger(ZooKeeperServer.class);
-        
         Environment.logEnv("Server environment:", LOG);
     }
 
     protected ZooKeeperServerBean jmxServerBean;
     protected DataTreeBean jmxDataTreeBean;
 
- 
     /**
      * The server delegates loading of the tree to an instance of the interface
      */
     public interface DataTreeBuilder {
-        public DataTree build();
+        DataTree build();
     }
 
     static public class BasicDataTreeBuilder implements DataTreeBuilder {
@@ -119,16 +117,14 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
 
     /**
-     * This is the secret that we use to generate passwords, for the moment it
-     * is more of a sanity check.
+     * This is the secret that we use to generate passwords, for the moment it is more of a sanity check.
      */
     static final private long superSecret = 0XB3415C00L;
 
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // this data structure must be accessed under the outstandingChanges lock
-    final HashMap<String, ChangeRecord> outstandingChangesForPath =
-        new HashMap<String, ChangeRecord>();
+    final HashMap<String, ChangeRecord> outstandingChangesForPath = new HashMap<String, ChangeRecord>();
     
     private ServerCnxnFactory serverCnxnFactory;
 
@@ -155,12 +151,10 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     /**
      * Creates a ZooKeeperServer instance. It sets everything up, but doesn't
      * actually start listening for clients until run() is invoked.
-     * 
-     * @param dataDir the directory to put the data
      */
     public ZooKeeperServer(FileTxnSnapLog txnLogFactory, int tickTime,
-            int minSessionTimeout, int maxSessionTimeout,
-            DataTreeBuilder treeBuilder, ZKDatabase zkDb) {
+                           int minSessionTimeout, int maxSessionTimeout,
+                           DataTreeBuilder treeBuilder, ZKDatabase zkDb) {
         serverStats = new ServerStats(this);
         this.txnLogFactory = txnLogFactory;
         this.zkDb = zkDb;
@@ -184,10 +178,9 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      * @param treeBuilder the datatree builder
      * @throws IOException
      */
-    public ZooKeeperServer(FileTxnSnapLog txnLogFactory, int tickTime,
-            DataTreeBuilder treeBuilder) throws IOException {
-        this(txnLogFactory, tickTime, -1, -1, treeBuilder,
-                new ZKDatabase(txnLogFactory));
+    public ZooKeeperServer(FileTxnSnapLog txnLogFactory, int tickTime, DataTreeBuilder treeBuilder)
+            throws IOException {
+        this(txnLogFactory, tickTime, -1, -1, treeBuilder, new ZKDatabase(txnLogFactory));
     }
     
     public ServerStats serverStats() {
@@ -219,10 +212,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      * test code.
      * It defaults to FileLogProvider persistence provider.
      */
-    public ZooKeeperServer(File snapDir, File logDir, int tickTime)
-            throws IOException {
-        this( new FileTxnSnapLog(snapDir, logDir),
-                tickTime, new BasicDataTreeBuilder());
+    public ZooKeeperServer(File snapDir, File logDir, int tickTime) throws IOException {
+        this(new FileTxnSnapLog(snapDir, logDir), tickTime, new BasicDataTreeBuilder());
     }
 
     /**
@@ -230,12 +221,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      *
      * @throws IOException
      */
-    public ZooKeeperServer(FileTxnSnapLog txnLogFactory,
-            DataTreeBuilder treeBuilder)
-        throws IOException
-    {
-        this(txnLogFactory, DEFAULT_TICK_TIME, -1, -1, treeBuilder,
-                new ZKDatabase(txnLogFactory));
+    public ZooKeeperServer(FileTxnSnapLog txnLogFactory, DataTreeBuilder treeBuilder) throws IOException {
+        this(txnLogFactory, DEFAULT_TICK_TIME, -1, -1, treeBuilder, new ZKDatabase(txnLogFactory));
     }
 
     /**
@@ -355,8 +342,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public void expire(Session session) {
         long sessionId = session.getSessionId();
-        LOG.info("Expiring session 0x" + Long.toHexString(sessionId)
-                + ", timeout of " + session.getTimeout() + "ms exceeded");
+        LOG.info("Expiring session 0x" + Long.toHexString(sessionId) + ", timeout of " + session.getTimeout() + "ms exceeded");
         close(sessionId);
     }
 
@@ -400,8 +386,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
     }
     
-    public void startdata() 
-    throws IOException, InterruptedException {
+    public void startdata() throws IOException, InterruptedException {
         //check to see if zkDb is not null
         if (zkDb == null) {
             zkDb = new ZKDatabase(this.txnLogFactory);
@@ -426,8 +411,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     protected void setupRequestProcessors() {
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
-        RequestProcessor syncProcessor = new SyncRequestProcessor(this,
-                finalProcessor);
+        RequestProcessor syncProcessor = new SyncRequestProcessor(this, finalProcessor);
         ((SyncRequestProcessor)syncProcessor).start();
         firstProcessor = new PrepRequestProcessor(this, syncProcessor);
         ((PrepRequestProcessor)firstProcessor).start();
@@ -614,19 +598,16 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         sessionTracker.setOwner(id, owner);
     }
 
-    protected void revalidateSession(ServerCnxn cnxn, long sessionId,
-            int sessionTimeout) throws IOException {
+    protected void revalidateSession(ServerCnxn cnxn, long sessionId, int sessionTimeout) throws IOException {
         boolean rc = sessionTracker.touchSession(sessionId, sessionTimeout);
         if (LOG.isTraceEnabled()) {
             ZooTrace.logTraceMessage(LOG,ZooTrace.SESSION_TRACE_MASK,
-                                     "Session 0x" + Long.toHexString(sessionId) +
-                    " is valid: " + rc);
+                                     "Session 0x" + Long.toHexString(sessionId) + " is valid: " + rc);
         }
         finishSessionInit(cnxn, rc);
     }
 
-    public void reopenSession(ServerCnxn cnxn, long sessionId, byte[] passwd,
-            int sessionTimeout) throws IOException {
+    public void reopenSession(ServerCnxn cnxn, long sessionId, byte[] passwd, int sessionTimeout) throws IOException {
         if (!checkPasswd(sessionId, passwd)) {
             finishSessionInit(cnxn, false);
         } else {
@@ -645,17 +626,16 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
 
         try {
-            ConnectResponse rsp = new ConnectResponse(0, valid ? cnxn.getSessionTimeout()
-                    : 0, valid ? cnxn.getSessionId() : 0, // send 0 if session is no
-                            // longer valid
-                            valid ? generatePasswd(cnxn.getSessionId()) : new byte[16]);
+            ConnectResponse rsp
+                    = new ConnectResponse(0, valid ? cnxn.getSessionTimeout() : 0,
+                                             valid ? cnxn.getSessionId() : 0, // send 0 if session is no longer valid
+                                             valid ? generatePasswd(cnxn.getSessionId()) : new byte[16]);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             BinaryOutputArchive bos = BinaryOutputArchive.getArchive(baos);
             bos.writeInt(-1, "len");
             rsp.serialize(bos, "connect");
             if (!cnxn.isOldClient) {
-                bos.writeBool(
-                        this instanceof ReadOnlyZooKeeperServer, "readOnly");
+                bos.writeBool(this instanceof ReadOnlyZooKeeperServer, "readOnly");
             }
             baos.close();
             ByteBuffer bb = ByteBuffer.wrap(baos.toByteArray());
@@ -698,8 +678,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      * @param xid
      * @param bb
      */
-    private void submitRequest(ServerCnxn cnxn, long sessionId, int type,
-            int xid, ByteBuffer bb, List<Id> authInfo) {
+    private void submitRequest(ServerCnxn cnxn, long sessionId, int type, int xid, ByteBuffer bb, List<Id> authInfo) {
         Request si = new Request(cnxn, sessionId, xid, type, bb, authInfo);
         submitRequest(si);
     }
@@ -867,10 +846,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         ConnectRequest connReq = new ConnectRequest();
         connReq.deserialize(bia, "connect");
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Session establishment request from client "
-                    + cnxn.getRemoteSocketAddress()
-                    + " client's lastZxid is 0x"
-                    + Long.toHexString(connReq.getLastZxidSeen()));
+            LOG.debug("Session establishment request from client " + cnxn.getRemoteSocketAddress() +
+                      " client's lastZxid is 0x" + Long.toHexString(connReq.getLastZxidSeen()));
         }
         boolean readOnly = false;
         try {
@@ -879,23 +856,18 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         } catch (IOException e) {
             // this is ok -- just a packet from an old client which
             // doesn't contain readOnly field
-            LOG.warn("Connection request from old client "
-                    + cnxn.getRemoteSocketAddress()
-                    + "; will be dropped if server is in r-o mode");
+            LOG.warn("Connection request from old client " + cnxn.getRemoteSocketAddress() +
+                     "; will be dropped if server is in r-o mode");
         }
         if (readOnly == false && this instanceof ReadOnlyZooKeeperServer) {
-            String msg = "Refusing session request for not-read-only client "
-                + cnxn.getRemoteSocketAddress();
+            String msg = "Refusing session request for not-read-only client " + cnxn.getRemoteSocketAddress();
             LOG.info(msg);
             throw new CloseRequestException(msg);
         }
         if (connReq.getLastZxidSeen() > zkDb.dataTree.lastProcessedZxid) {
-            String msg = "Refusing session request for client "
-                + cnxn.getRemoteSocketAddress()
-                + " as it has seen zxid 0x"
-                + Long.toHexString(connReq.getLastZxidSeen())
-                + " our last zxid is 0x"
-                + Long.toHexString(getZKDatabase().getDataTreeLastProcessedZxid())
+            String msg = "Refusing session request for client " + cnxn.getRemoteSocketAddress()
+                + " as it has seen zxid 0x" + Long.toHexString(connReq.getLastZxidSeen())
+                + " our last zxid is 0x" + Long.toHexString(getZKDatabase().getDataTreeLastProcessedZxid())
                 + " client must try another server";
 
             LOG.info(msg);
@@ -912,21 +884,18 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             sessionTimeout = maxSessionTimeout;
         }
         cnxn.setSessionTimeout(sessionTimeout);
-        // We don't want to receive any packets until we are sure that the
-        // session is setup
+        // We don't want to receive any packets until we are sure that the session is setup
         cnxn.disableRecv();
         long sessionId = connReq.getSessionId();
         if (sessionId != 0) {
             long clientSessionId = connReq.getSessionId();
-            LOG.info("Client attempting to renew session 0x"
-                    + Long.toHexString(clientSessionId)
-                    + " at " + cnxn.getRemoteSocketAddress());
+            LOG.info("Client attempting to renew session 0x" + Long.toHexString(clientSessionId) +
+                     " at " + cnxn.getRemoteSocketAddress());
             serverCnxnFactory.closeSession(sessionId);
             cnxn.setSessionId(sessionId);
             reopenSession(cnxn, sessionId, passwd, sessionTimeout);
         } else {
-            LOG.info("Client attempting to establish new session at "
-                    + cnxn.getRemoteSocketAddress());
+            LOG.info("Client attempting to establish new session at " + cnxn.getRemoteSocketAddress());
             createSession(cnxn, passwd, sessionTimeout);
         }
     }
@@ -965,27 +934,23 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             }
             if (authReturn!= KeeperException.Code.OK) {
                 if (ap == null) {
-                    LOG.warn("No authentication provider for scheme: "
-                            + scheme + " has "
-                            + ProviderRegistry.listProviders());
+                    LOG.warn("No authentication provider for scheme: " + scheme +
+                             " has " + ProviderRegistry.listProviders());
                 } else {
                     LOG.warn("Authentication failed for scheme: " + scheme);
                 }
                 // send a response...
-                ReplyHeader rh = new ReplyHeader(h.getXid(), 0,
-                        KeeperException.Code.AUTHFAILED.intValue());
+                ReplyHeader rh = new ReplyHeader(h.getXid(), 0, KeeperException.Code.AUTHFAILED.intValue());
                 cnxn.sendResponse(rh, null, null);
                 // ... and close connection
                 cnxn.sendBuffer(ServerCnxnFactory.closeConn);
                 cnxn.disableRecv();
             } else {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Authentication succeeded for scheme: "
-                              + scheme);
+                    LOG.debug("Authentication succeeded for scheme: " + scheme);
                 }
                 LOG.info("auth success " + cnxn.getRemoteSocketAddress());
-                ReplyHeader rh = new ReplyHeader(h.getXid(), 0,
-                        KeeperException.Code.OK.intValue());
+                ReplyHeader rh = new ReplyHeader(h.getXid(), 0, KeeperException.Code.OK.intValue());
                 cnxn.sendResponse(rh, null, null);
             }
             return;
@@ -997,7 +962,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             }
             else {
                 Request si = new Request(cnxn, cnxn.getSessionId(), h.getXid(),
-                  h.getType(), incomingBuffer, cnxn.getAuthInfo());
+                                         h.getType(), incomingBuffer, cnxn.getAuthInfo());
                 si.setOwner(ServerCnxn.me);
                 submitRequest(si);
             }

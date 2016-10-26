@@ -33,8 +33,7 @@ import org.apache.zookeeper.server.ZooTrace;
  * This RequestProcessor forwards any requests that modify the state of the
  * system to the Leader.
  */
-public class ObserverRequestProcessor extends ZooKeeperCriticalThread implements
-        RequestProcessor {
+public class ObserverRequestProcessor extends ZooKeeperCriticalThread implements RequestProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ObserverRequestProcessor.class);
 
     ObserverZooKeeperServer zks;
@@ -53,10 +52,8 @@ public class ObserverRequestProcessor extends ZooKeeperCriticalThread implements
      * @param zks
      * @param nextProcessor
      */
-    public ObserverRequestProcessor(ObserverZooKeeperServer zks,
-            RequestProcessor nextProcessor) {
-        super("ObserverRequestProcessor:" + zks.getServerId(), zks
-                .getZooKeeperServerListener());
+    public ObserverRequestProcessor(ObserverZooKeeperServer zks, RequestProcessor nextProcessor) {
+        super("ObserverRequestProcessor:" + zks.getServerId(), zks.getZooKeeperServerListener());
         this.zks = zks;
         this.nextProcessor = nextProcessor;
     }
@@ -67,8 +64,7 @@ public class ObserverRequestProcessor extends ZooKeeperCriticalThread implements
             while (!finished) {
                 Request request = queuedRequests.take();
                 if (LOG.isTraceEnabled()) {
-                    ZooTrace.logRequest(LOG, ZooTrace.CLIENT_REQUEST_TRACE_MASK,
-                            'F', request, "");
+                    ZooTrace.logRequest(LOG, ZooTrace.CLIENT_REQUEST_TRACE_MASK, 'F', request, "");
                 }
                 if (request == Request.requestOfDeath) {
                     break;
@@ -78,11 +74,10 @@ public class ObserverRequestProcessor extends ZooKeeperCriticalThread implements
                 // the response
                 nextProcessor.processRequest(request);
                 
-                // We now ship the request to the leader. As with all
-                // other quorum operations, sync also follows this code
-                // path, but different from others, we need to keep track
-                // of the sync operations this Observer has pending, so we
-                // add it to pendingSyncs.
+                // We now ship the request to the leader.
+                // As with all other quorum operations, sync also follows this code path,
+                // but different from others, we need to keep track of the sync operations this Observer has pending,
+                // so we add it to pendingSyncs.
                 switch (request.type) {
                 case OpCode.sync:
                     zks.pendingSyncs.add(request);

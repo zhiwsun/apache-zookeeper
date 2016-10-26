@@ -37,9 +37,7 @@ class AckRequestProcessor implements RequestProcessor {
         this.leader = leader;
     }
 
-    /**
-     * Forward the request as an ACK to the leader
-     */
+    /** Forward the request as an ACK to the leader */
     public void processRequest(Request request) {
         QuorumPeer self = leader.self;
         if(self != null)

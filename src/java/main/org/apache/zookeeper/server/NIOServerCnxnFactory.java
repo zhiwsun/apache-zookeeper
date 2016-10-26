@@ -18,6 +18,9 @@
 
 package org.apache.zookeeper.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -26,16 +29,10 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable {
+
     private static final Logger LOG = LoggerFactory.getLogger(NIOServerCnxnFactory.class);
 
     static {
@@ -56,27 +53,25 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     final Selector selector = Selector.open();
 
     /**
-     * We use this buffer to do efficient socket I/O. Since there is a single
-     * sender thread per NIOServerCnxn instance, we can use a member variable to
-     * only allocate it once.
+     * We use this buffer to do efficient socket I/O.
+     * Since there is a single sender thread per NIOServerCnxn instance,
+     * we can use a member variable to only allocate it once.
     */
     final ByteBuffer directBuffer = ByteBuffer.allocateDirect(64 * 1024);
 
-    final HashMap<InetAddress, Set<NIOServerCnxn>> ipMap =
-        new HashMap<InetAddress, Set<NIOServerCnxn>>( );
+    final HashMap<InetAddress, Set<NIOServerCnxn>> ipMap = new HashMap<InetAddress, Set<NIOServerCnxn>>( );
 
     int maxClientCnxns = 60;
 
     /**
-     * Construct a new server connection factory which will accept an unlimited number
-     * of concurrent connections from each client (up to the file descriptor
-     * limits of the operating system). startup(zks) must be called subsequently.
-     * @throws IOException
+     * Construct a new server connection factory which will accept an unlimited number of
+     * concurrent connections from each client (up to the file descriptor limits of the operating system).
+     * startup(zks) must be called subsequently.
      */
-    public NIOServerCnxnFactory() throws IOException {
-    }
+    public NIOServerCnxnFactory() throws IOException { }
 
     Thread thread;
+
     @Override
     public void configure(InetSocketAddress addr, int maxcc) throws IOException {
         configureSaslLogin();
@@ -111,8 +106,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     }
 
     @Override
-    public void startup(ZooKeeperServer zks) throws IOException,
-            InterruptedException {
+    public void startup(ZooKeeperServer zks) throws IOException, InterruptedException {
         start();
         setZooKeeperServer(zks);
         zks.startdata();
@@ -175,25 +169,21 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                 synchronized (this) {
                     selected = selector.selectedKeys();
                 }
-                ArrayList<SelectionKey> selectedList = new ArrayList<SelectionKey>(
-                        selected);
+                ArrayList<SelectionKey> selectedList = new ArrayList<SelectionKey>(selected);
                 Collections.shuffle(selectedList);
+
                 for (SelectionKey k : selectedList) {
                     if ((k.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-                        SocketChannel sc = ((ServerSocketChannel) k
-                                .channel()).accept();
+                        SocketChannel sc = ((ServerSocketChannel) k.channel()).accept();
                         InetAddress ia = sc.socket().getInetAddress();
                         int cnxncount = getClientCnxnCount(ia);
                         if (maxClientCnxns > 0 && cnxncount >= maxClientCnxns){
-                            LOG.warn("Too many connections from " + ia
-                                     + " - max is " + maxClientCnxns );
+                            LOG.warn("Too many connections from " + ia + " - max is " + maxClientCnxns );
                             sc.close();
                         } else {
-                            LOG.info("Accepted socket connection from "
-                                     + sc.socket().getRemoteSocketAddress());
+                            LOG.info("Accepted socket connection from " + sc.socket().getRemoteSocketAddress());
                             sc.configureBlocking(false);
-                            SelectionKey sk = sc.register(selector,
-                                    SelectionKey.OP_READ);
+                            SelectionKey sk = sc.register(selector, SelectionKey.OP_READ);
                             NIOServerCnxn cnxn = createConnection(sc, sk);
                             sk.attach(cnxn);
                             addCnxn(cnxn);
@@ -203,8 +193,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                         c.doIO(k);
                     } else {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Unexpected ops in select "
-                                      + k.readyOps());
+                            LOG.debug("Unexpected ops in select " + k.readyOps());
                         }
                     }
                 }
@@ -237,8 +226,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                 // don't hold this.cnxns lock as deadlock may occur
                 cnxn.close();
             } catch (Exception e) {
-                LOG.warn("Ignoring exception closing cnxn sessionid 0x"
-                         + Long.toHexString(cnxn.sessionId), e);
+                LOG.warn("Ignoring exception closing cnxn sessionid 0x" + Long.toHexString(cnxn.sessionId), e);
             }
         }
     }

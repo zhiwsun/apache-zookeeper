@@ -95,8 +95,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LeaderElectionSupport implements Watcher {
 
-  private static final Logger logger = LoggerFactory
-      .getLogger(LeaderElectionSupport.class);
+  private static final Logger logger = LoggerFactory.getLogger(LeaderElectionSupport.class);
 
   private ZooKeeper zooKeeper;
 

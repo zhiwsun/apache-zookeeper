@@ -27,34 +27,36 @@ import org.apache.zookeeper.server.SessionTrackerImpl;
 import org.apache.zookeeper.server.ZooKeeperServerListener;
 
 /**
- * This is really just a shell of a SessionTracker that tracks session activity
- * to be forwarded to the Leader using a PING.
+ * This is really just a shell of a SessionTracker
+ * that tracks session activity to be forwarded to the Leader using a PING.
  */
 public class LearnerSessionTracker implements SessionTracker {
-    SessionExpirer expirer;
 
-    HashMap<Long, Integer> touchTable = new HashMap<Long, Integer>();
+    SessionExpirer                   expirer;
+    /** SessionId - Timeout */
+    ConcurrentHashMap<Long, Integer> sessionsWithTimeouts;
+    /** SessionId -  */
+    HashMap<Long, Integer>           touchTable           = new HashMap<Long, Integer>();
+
+    /** TODO 这里为什么要设置ServerId = 1？ */
     long serverId = 1;
-    long nextSessionId=0;
-    
-    private ConcurrentHashMap<Long, Integer> sessionsWithTimeouts;
+    /** 这里不要理会初始值，在构造方法里，会根据serverId和时间戳来生成 */
+    long nextSessionId = 0;
 
-    public LearnerSessionTracker(SessionExpirer expirer,
-            ConcurrentHashMap<Long, Integer> sessionsWithTimeouts, long id,
-            ZooKeeperServerListener listener) {
+    /** 构造方法 */
+    public LearnerSessionTracker(SessionExpirer expirer, ConcurrentHashMap<Long, Integer> sessionsWithTimeouts,
+                                 long serverId, ZooKeeperServerListener listener) {
         this.expirer = expirer;
         this.sessionsWithTimeouts = sessionsWithTimeouts;
-        this.serverId = id;
+        this.serverId = serverId;
         nextSessionId = SessionTrackerImpl.initializeNextSession(this.serverId);
-        
     }
+
+    public void shutdown() {  }
 
     synchronized public void removeSession(long sessionId) {
         sessionsWithTimeouts.remove(sessionId);
         touchTable.remove(sessionId);
-    }
-
-    public void shutdown() {
     }
 
     synchronized public void addSession(long sessionId, int sessionTimeout) {
@@ -73,10 +75,10 @@ public class LearnerSessionTracker implements SessionTracker {
         return oldTouchTable;
     }
 
-
     synchronized public long createSession(int sessionTimeout) {
         return (nextSessionId++);
     }
+
 
     public void checkSession(long sessionId, Object owner)  {
         // Nothing to do here. Sessions are checked at the Leader
@@ -86,10 +88,10 @@ public class LearnerSessionTracker implements SessionTracker {
         // Nothing to do here. Sessions are checked at the Leader
     }
 
-    public void dumpSessions(PrintWriter pwriter) {
+    public void dumpSessions(PrintWriter writer) {
     	// the original class didn't have tostring impl, so just
     	// dup what we had before
-    	pwriter.println(toString());
+    	writer.println(toString());
     }
 
     public void setSessionClosing(long sessionId) {

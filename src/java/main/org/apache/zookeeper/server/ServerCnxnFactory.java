@@ -18,25 +18,23 @@
 
 package org.apache.zookeeper.server;
 
+import org.apache.zookeeper.Environment;
+import org.apache.zookeeper.Login;
+import org.apache.zookeeper.jmx.MBeanRegistry;
+import org.apache.zookeeper.server.auth.SaslServerCallbackHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.JMException;
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.Configuration;
+import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.security.auth.login.Configuration;
-import javax.security.auth.login.LoginException;
-import javax.security.auth.login.AppConfigurationEntry;
-
-import javax.management.JMException;
-
-import org.apache.zookeeper.Login;
-import org.apache.zookeeper.Environment;
-import org.apache.zookeeper.jmx.MBeanRegistry;
-import org.apache.zookeeper.server.auth.SaslServerCallbackHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class ServerCnxnFactory {
 
@@ -69,8 +67,7 @@ public abstract class ServerCnxnFactory {
 
     public abstract void closeSession(long sessionId);
 
-    public abstract void configure(InetSocketAddress addr,
-                                   int maxClientCnxns) throws IOException;
+    public abstract void configure(InetSocketAddress addr, int maxClientCnxns) throws IOException;
 
     protected SaslServerCallbackHandler saslServerCallbackHandler;
     public Login login;
@@ -81,8 +78,7 @@ public abstract class ServerCnxnFactory {
     /** Maximum number of connections allowed from particular host (ip) */
     public abstract void setMaxClientCnxnsPerHost(int max);
 
-    public abstract void startup(ZooKeeperServer zkServer)
-        throws IOException, InterruptedException;
+    public abstract void startup(ZooKeeperServer zkServer) throws IOException, InterruptedException;
 
     public abstract void join() throws InterruptedException;
 
@@ -91,6 +87,7 @@ public abstract class ServerCnxnFactory {
     public abstract void start();
 
     protected ZooKeeperServer zkServer;
+
     final public void setZooKeeperServer(ZooKeeperServer zk) {
         this.zkServer = zk;
         if (zk != null) {
@@ -99,19 +96,17 @@ public abstract class ServerCnxnFactory {
     }
 
     public abstract void closeAll();
-    
+
+    /** 默认使用NioServerCnxnFactory */
     static public ServerCnxnFactory createFactory() throws IOException {
-        String serverCnxnFactoryName =
-            System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
+        String serverCnxnFactoryName = System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
         if (serverCnxnFactoryName == null) {
             serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
         }
         try {
-            return (ServerCnxnFactory) Class.forName(serverCnxnFactoryName)
-                                                .newInstance();
+            return (ServerCnxnFactory) Class.forName(serverCnxnFactoryName).newInstance();
         } catch (Exception e) {
-            IOException ioe = new IOException("Couldn't instantiate "
-                    + serverCnxnFactoryName);
+            IOException ioe = new IOException("Couldn't instantiate " + serverCnxnFactoryName);
             ioe.initCause(e);
             throw ioe;
         }

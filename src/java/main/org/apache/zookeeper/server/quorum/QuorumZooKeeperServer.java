@@ -17,25 +17,22 @@
  */
 package org.apache.zookeeper.server.quorum;
 
-import java.io.PrintWriter;
-
 import org.apache.zookeeper.server.ZKDatabase;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 
+import java.io.PrintWriter;
+
 /**
- * Abstract base class for all ZooKeeperServers that participate in
- * a quorum.
+ * Abstract base class for all ZooKeeperServers that participate in a quorum.
  */
 public abstract class QuorumZooKeeperServer extends ZooKeeperServer {
     protected final QuorumPeer self;
 
     protected QuorumZooKeeperServer(FileTxnSnapLog logFactory, int tickTime,
             int minSessionTimeout, int maxSessionTimeout,
-            DataTreeBuilder treeBuilder, ZKDatabase zkDb, QuorumPeer self)
-    {
-        super(logFactory, tickTime, minSessionTimeout, maxSessionTimeout,
-                treeBuilder, zkDb);
+            DataTreeBuilder treeBuilder, ZKDatabase zkDb, QuorumPeer self) {
+        super(logFactory, tickTime, minSessionTimeout, maxSessionTimeout, treeBuilder, zkDb);
         this.self = self;
     }
 
@@ -50,8 +47,7 @@ public abstract class QuorumZooKeeperServer extends ZooKeeperServer {
         pwriter.print("electionAlg=");
         pwriter.println(self.getElectionType());
         pwriter.print("electionPort=");
-        pwriter.println(self.quorumPeers.get(self.getId()).electionAddr
-                .getPort());
+        pwriter.println(self.quorumPeers.get(self.getId()).electionAddr.getPort());
         pwriter.print("quorumPort=");
         pwriter.println(self.quorumPeers.get(self.getId()).addr.getPort());
         pwriter.print("peerType=");

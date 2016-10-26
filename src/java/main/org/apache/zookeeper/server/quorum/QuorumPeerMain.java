@@ -17,20 +17,19 @@
  */
 package org.apache.zookeeper.server.quorum;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.management.JMException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.jmx.ManagedUtil;
+import org.apache.zookeeper.server.DatadirCleanupManager;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZKDatabase;
-import org.apache.zookeeper.server.DatadirCleanupManager;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.JMException;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -93,25 +92,23 @@ public class QuorumPeerMain {
         System.exit(0);
     }
 
-    protected void initializeAndRun(String[] args)
-        throws ConfigException, IOException
-    {
+    protected void initializeAndRun(String[] args) throws ConfigException, IOException {
         QuorumPeerConfig config = new QuorumPeerConfig();
         if (args.length == 1) {
             config.parse(args[0]);
         }
 
         // Start and schedule the the purge task
-        DatadirCleanupManager purgeMgr = new DatadirCleanupManager(config
-                .getDataDir(), config.getDataLogDir(), config
-                .getSnapRetainCount(), config.getPurgeInterval());
+        DatadirCleanupManager purgeMgr
+                = new DatadirCleanupManager(config.getDataDir(), config.getDataLogDir(),
+                                            config.getSnapRetainCount(), config.getPurgeInterval());
         purgeMgr.start();
 
+        /** 根据配置，识别是否是standalone模式运行 */
         if (args.length == 1 && config.servers.size() > 0) {
             runFromConfig(config);
         } else {
-            LOG.warn("Either no config or no quorum defined in config, running "
-                    + " in standalone mode");
+            LOG.warn("Either no config or no quorum defined in config, running in standalone mode");
             // there is only server in the quorum -- run as standalone
             ZooKeeperServerMain.main(args);
         }
@@ -123,18 +120,16 @@ public class QuorumPeerMain {
       } catch (JMException e) {
           LOG.warn("Unable to register log4j JMX control", e);
       }
-  
+
       LOG.info("Starting quorum peer");
       try {
           ServerCnxnFactory cnxnFactory = ServerCnxnFactory.createFactory();
-          cnxnFactory.configure(config.getClientPortAddress(),
-                                config.getMaxClientCnxns());
+          cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns());
   
           quorumPeer = new QuorumPeer();
           quorumPeer.setClientPortAddress(config.getClientPortAddress());
-          quorumPeer.setTxnFactory(new FileTxnSnapLog(
-                      new File(config.getDataLogDir()),
-                      new File(config.getDataDir())));
+          quorumPeer.setTxnFactory(new FileTxnSnapLog(new File(config.getDataLogDir()), new File(config.getDataDir())));
+          /** Quorum中的所有节点 */
           quorumPeer.setQuorumPeers(config.getServers());
           quorumPeer.setElectionType(config.getElectionAlg());
           quorumPeer.setMyid(config.getServerId());

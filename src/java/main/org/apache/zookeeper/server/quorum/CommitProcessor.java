@@ -18,48 +18,46 @@
 
 package org.apache.zookeeper.server.quorum;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.ZooDefs.OpCode;
 import org.apache.zookeeper.server.Request;
 import org.apache.zookeeper.server.RequestProcessor;
 import org.apache.zookeeper.server.ZooKeeperCriticalThread;
 import org.apache.zookeeper.server.ZooKeeperServerListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
- * This RequestProcessor matches the incoming committed requests with the
- * locally submitted requests. The trick is that locally submitted requests that
- * change the state of the system will come back as incoming committed requests,
+ * This RequestProcessor matches the incoming committed requests with the locally submitted requests.
+ * The trick is that locally submitted requests that change the state of the system
+ * will come back as incoming committed requests,
  * so we need to match them up.
  */
 public class CommitProcessor extends ZooKeeperCriticalThread implements RequestProcessor {
+
     private static final Logger LOG = LoggerFactory.getLogger(CommitProcessor.class);
 
-    /**
-     * Requests that we are holding until the commit comes in.
-     */
-    LinkedList<Request> queuedRequests = new LinkedList<Request>();
+    /** Requests that we are holding until the commit comes in. */
+    LinkedList<Request> queuedRequests = new LinkedList<>();
 
-    /**
-     * Requests that have been committed.
-     */
-    LinkedList<Request> committedRequests = new LinkedList<Request>();
+    /** Requests that have been committed. */
+    LinkedList<Request> committedRequests = new LinkedList<>();
 
+    /** Requests that need to be push to nextProcessor */
+    ArrayList<Request> toProcess = new ArrayList<>();
     RequestProcessor nextProcessor;
-    ArrayList<Request> toProcess = new ArrayList<Request>();
 
     /**
-     * This flag indicates whether we need to wait for a response to come back from the
-     * leader or we just let the sync operation flow through like a read. The flag will
-     * be true if the CommitProcessor is in a Leader pipeline.
+     * This flag indicates whether we need to wait for a response to come back from the leader
+     * or we just let the sync operation flow through like a read.
+     * The flag will be true if the CommitProcessor is in a Leader pipeline.
      */
     boolean matchSyncs;
 
     public CommitProcessor(RequestProcessor nextProcessor, String id,
-            boolean matchSyncs, ZooKeeperServerListener listener) {
+                           boolean matchSyncs, ZooKeeperServerListener listener) {
         super("CommitProcessor:" + id, listener);
         this.nextProcessor = nextProcessor;
         this.matchSyncs = matchSyncs;
@@ -72,54 +70,51 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements RequestP
         try {
             Request nextPending = null;            
             while (!finished) {
+                /** 将toProcess列表中的Request发送到nextProcessor */
                 int len = toProcess.size();
                 for (int i = 0; i < len; i++) {
                     nextProcessor.processRequest(toProcess.get(i));
                 }
                 toProcess.clear();
+
                 synchronized (this) {
-                    if ((queuedRequests.size() == 0 || nextPending != null)
-                            && committedRequests.size() == 0) {
+                    if ((queuedRequests.size() == 0 || nextPending != null) && committedRequests.size() == 0) {
                         wait();
                         continue;
                     }
-                    // First check and see if the commit came in for the pending
-                    // request
-                    if ((queuedRequests.size() == 0 || nextPending != null)
-                            && committedRequests.size() > 0) {
+
+                    /* first check and see if the commit came in for the pending request */
+                    if ((queuedRequests.size() == 0 || nextPending != null) && committedRequests.size() > 0) {
                         Request r = committedRequests.remove();
                         /*
-                         * We match with nextPending so that we can move to the
-                         * next request when it is committed. We also want to
-                         * use nextPending because it has the cnxn member set
-                         * properly.
+                         * we match with nextPending so that we can move to the next request when it is committed.
+                         * we also want to use nextPending because it has the cnxn member set properly.
                          */
-                        if (nextPending != null
-                                && nextPending.sessionId == r.sessionId
+                        if (nextPending != null && nextPending.sessionId == r.sessionId
                                 && nextPending.cxid == r.cxid) {
-                            // we want to send our version of the request.
-                            // the pointer to the connection in the request
+                            /*
+                             * we want to send our version of the request.
+                             * the pointer to the connection in the request.
+                             */
                             nextPending.hdr = r.hdr;
                             nextPending.txn = r.txn;
                             nextPending.zxid = r.zxid;
                             toProcess.add(nextPending);
                             nextPending = null;
                         } else {
-                            // this request came from someone else so just
-                            // send the commit packet
+                            /* this request came from someone else so just send the commit packet */
                             toProcess.add(r);
                         }
                     }
                 }
 
-                // We haven't matched the pending requests, so go back to
-                // waiting
+                /* we haven't matched the pending requests, so go back to waiting */
                 if (nextPending != null) {
                     continue;
                 }
 
                 synchronized (this) {
-                    // Process the next requests in the queuedRequests
+                    /* process the next requests in the queuedRequests */
                     while (nextPending == null && queuedRequests.size() > 0) {
                         Request request = queuedRequests.remove();
                         switch (request.type) {
@@ -156,8 +151,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements RequestP
     synchronized public void commit(Request request) {
         if (!finished) {
             if (request == null) {
-                LOG.warn("Committed a null!",
-                         new Exception("committing a null! "));
+                LOG.warn("Committed a null!", new Exception("committing a null! "));
                 return;
             }
             if (LOG.isDebugEnabled()) {
